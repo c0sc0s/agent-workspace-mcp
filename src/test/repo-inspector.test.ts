@@ -22,7 +22,7 @@ test("getWebProjectContext identifies the fixture app package as an application"
   assert.equal(result.packageRoot, appRoot);
   assert.equal(result.kind, "application");
   assert.equal(result.confidence, "high");
-  assert.ok(result.entryPoints.some((file) => file.includes("/src/index.ts") || file.includes("\\src\\index.ts")));
+  assert.ok(result.entryPoints.some((file) => file.includes("/src/main.tsx") || file.includes("\\src\\main.tsx")));
 });
 
 test("getWebProjectContext prefers the best matching nested package for a workspace root", () => {

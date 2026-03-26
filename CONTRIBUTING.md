@@ -4,14 +4,7 @@
 
 ```bash
 npm install
-npm run build
-npm test
-```
-
-Run the smoke script against the included fixture workspace:
-
-```bash
-npm run smoke -- "./fixtures/monorepo" "./fixtures/monorepo/packages/app/src/index.ts" 1 10
+npm run check
 ```
 
 ## Pull Requests
@@ -23,5 +16,6 @@ npm run smoke -- "./fixtures/monorepo" "./fixtures/monorepo/packages/app/src/ind
 
 ## Release Expectations
 
-- `npm test` must pass before publishing.
-- The published package is built from `dist/` only. Do not rely on unpublished source files at runtime.
+- `npm run check` must pass before publishing.
+- The published package is built from `dist/` and `bin/` only. Do not rely on unpublished source files at runtime.
+- See [RELEASING.md](./RELEASING.md) for the release workflow and checklist.

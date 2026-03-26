@@ -28,7 +28,6 @@ const PACKAGE_TSCONFIG_NAMES = ["tsconfig.json", "tsconfig.app.json", "tsconfig.
 const ENTRY_POINT_CANDIDATES = [
   "src/main.ts",
   "src/main.tsx",
-  "src/index.ts",
   "src/index.tsx",
   "app/layout.tsx",
   "app/page.tsx",

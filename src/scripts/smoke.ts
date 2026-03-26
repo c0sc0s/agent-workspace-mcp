@@ -24,7 +24,7 @@ async function main(): Promise<void> {
 
   const transport = new StdioClientTransport({
     command: process.execPath,
-    args: [path.resolve("dist/index.js")],
+    args: [path.resolve("dist/cli.js")],
     cwd: process.cwd(),
     stderr: "inherit",
   });

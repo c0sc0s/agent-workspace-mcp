@@ -26,7 +26,7 @@ This is especially useful for monorepos, frontend applications, and local agent 
 Run directly with `npx`:
 
 ```bash
-npx agent-workspace-mcp
+npx -y agent-workspace-mcp
 ```
 
 Or install globally:
@@ -66,7 +66,7 @@ If you prefer a local checkout instead of `npx`:
   "mcpServers": {
     "agent-workspace-mcp": {
       "command": "node",
-      "args": ["C:/path/to/agent-workspace-mcp/dist/index.js"]
+      "args": ["C:/path/to/agent-workspace-mcp/dist/cli.js"]
     }
   }
 }
@@ -76,9 +76,26 @@ If you prefer a local checkout instead of `npx`:
 
 ```bash
 npm install
-npm run build
-npm test
+npm run check
 ```
+
+`npm run check` is the main regression gate. It builds the package, runs unit tests, runs smoke validation against the fixture monorepo, and verifies that the packed tarball can still be installed and started as an MCP server.
+
+If you only want to inspect the exact publish contents without publishing:
+
+```bash
+npm run release:dry-run
+```
+
+### Release
+
+The repository includes a GitHub Actions release workflow that publishes to npm when a GitHub release is published.
+
+Required repository setup:
+
+- add `NPM_TOKEN` as a GitHub Actions secret
+- ensure the npm package name is available
+- create and publish a GitHub release such as `v0.1.1`
 
 You can also run the included smoke check against the fixture monorepo:
 
@@ -105,7 +122,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for contribution workflow, [SECURITY.md
 直接通过 `npx` 运行：
 
 ```bash
-npx agent-workspace-mcp
+npx -y agent-workspace-mcp
 ```
 
 或者全局安装：
@@ -145,7 +162,7 @@ args = ["-y", "agent-workspace-mcp"]
   "mcpServers": {
     "agent-workspace-mcp": {
       "command": "node",
-      "args": ["C:/path/to/agent-workspace-mcp/dist/index.js"]
+      "args": ["C:/path/to/agent-workspace-mcp/dist/cli.js"]
     }
   }
 }
@@ -155,9 +172,26 @@ args = ["-y", "agent-workspace-mcp"]
 
 ```bash
 npm install
-npm run build
-npm test
+npm run check
 ```
+
+`npm run check` 是主要回归门禁。它会执行构建、单元测试、fixture 冒烟验证，以及打包后安装启动验证。
+
+如果只想确认最终发布包内容而不真正发布：
+
+```bash
+npm run release:dry-run
+```
+
+### 发布
+
+仓库已经包含 GitHub Actions 的发布工作流，在 GitHub Release 发布后自动推送到 npm。
+
+需要提前准备：
+
+- 在 GitHub Actions Secret 中配置 `NPM_TOKEN`
+- 确认 npm 包名可用
+- 创建并发布类似 `v0.1.1` 的 GitHub Release
 
 也可以使用仓库内置 fixture 做一次冒烟验证：
 

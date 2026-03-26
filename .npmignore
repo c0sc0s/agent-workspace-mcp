@@ -1,0 +1,10 @@
+node_modules
+coverage
+dist-test
+.DS_Store
+
+!bin
+!dist
+!LICENSE
+!README.md
+!CHANGELOG.md
