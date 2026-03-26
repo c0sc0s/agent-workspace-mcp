@@ -27,6 +27,8 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+        shell: bash
 
       - name: Run full verification
         run: npm run check
+        shell: bash
