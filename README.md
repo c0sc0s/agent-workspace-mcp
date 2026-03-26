@@ -2,6 +2,8 @@
 
 <div align="center">
 
+<img src="./assets/logo.png" alt="agent-workspace-mcp logo" width="360" />
+
 TypeScript-aware MCP server for repository discovery, code intelligence, and web workspace context.
 
 [![CI](https://github.com/c0sc0s/agent-workspace-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/c0sc0s/agent-workspace-mcp/actions/workflows/ci.yml)
