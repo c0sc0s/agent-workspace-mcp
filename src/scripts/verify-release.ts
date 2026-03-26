@@ -4,8 +4,7 @@ import path from "node:path";
 import { exec } from "node:child_process";
 import { promisify } from "node:util";
 
-import { Client } from "@modelcontextprotocol/sdk/client/index.js";
-import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+import { assertFixtureContract, closeClient, collectFixtureContract, createClientForInstalledCli } from "../testing/mcp-contract.js";
 
 const execAsync = promisify(exec);
 
@@ -24,37 +23,14 @@ async function main(): Promise<void> {
     await runNpm(`install "${tarballPath}"`, installRoot);
 
     const installedCli = path.join(installRoot, "node_modules", packageJson.name, "dist", "cli.js");
-    const client = new Client({
-      name: "agent-workspace-mcp-release-check",
-      version: "0.1.0",
-    });
+    const { client, transport } = await createClientForInstalledCli(installedCli, installRoot);
 
-    const transport = new StdioClientTransport({
-      command: process.execPath,
-      args: [installedCli],
-      cwd: installRoot,
-      stderr: "inherit",
-    });
-
-    await client.connect(transport);
-    const tools = await client.listTools();
-    const repository = await client.callTool({
-      name: "discover_repository_structure",
-      arguments: {
-        root: path.join(projectRoot, "fixtures", "monorepo"),
-      },
-    });
-
-    if (!tools.tools.some((tool) => tool.name === "discover_repository_structure")) {
-      throw new Error("Installed package did not expose discover_repository_structure");
+    try {
+      const payload = await collectFixtureContract(client);
+      assertFixtureContract(payload);
+    } finally {
+      await closeClient(transport);
     }
-
-    const structured = repository.structuredContent as { packages?: unknown[] } | undefined;
-    if (!structured?.packages || structured.packages.length === 0) {
-      throw new Error("Installed package did not return repository discovery results");
-    }
-
-    await transport.close();
   } finally {
     if (tarballPath) {
       await fs.rm(tarballPath, { force: true });
