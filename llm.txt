@@ -1,0 +1,104 @@
+Repository: codex-ts-lsp
+
+This repository contains a local stdio MCP server in `agent-workspace-mcp/`.
+Server package name: `agent-workspace-mcp`
+Purpose: give coding agents project-aware TypeScript and web workspace context without requiring an IDE.
+
+Register this MCP
+
+Preferred:
+
+For Codex (`~/.codex/config.toml`):
+
+```toml
+[mcp_servers.agent_workspace_mcp]
+command = "npx"
+args = ["-y", "agent-workspace-mcp"]
+```
+
+For JSON-style MCP clients:
+
+```json
+{
+  "mcpServers": {
+    "agent-workspace-mcp": {
+      "command": "npx",
+      "args": ["-y", "agent-workspace-mcp"]
+    }
+  }
+}
+```
+
+If you are working from this checkout and want to run the local build instead:
+
+1. Build the server in `agent-workspace-mcp/`
+2. Register:
+
+```json
+{
+  "mcpServers": {
+    "agent-workspace-mcp": {
+      "command": "node",
+      "args": ["C:/Users/Admin/workspace/codex-ts-lsp/agent-workspace-mcp/dist/cli.js"]
+    }
+  }
+}
+```
+
+Requirements
+
+- Node.js `>=18.20.0`
+- The server communicates over `stdio`
+- Tool inputs should use local filesystem paths
+
+Use this MCP when
+
+- You need TypeScript-aware diagnostics for a real project instead of grep-level guesses
+- You need definition, reference, or symbol lookup from an exact source position
+- You need to understand repo structure in a monorepo or frontend workspace
+- You need frontend context such as entrypoints, routing surfaces, config files, and framework hints
+
+Tool guide
+
+- `discover_repository_structure`
+  - Input: `root`
+  - Use first when you do not yet understand the workspace layout
+- `get_web_project_context`
+  - Input: `root`
+  - Use after repository discovery when the repo may be a web app or monorepo with frontend packages
+- `get_diagnostics`
+  - Input: `file`, optional `workspaceRoot`, optional `projectTsconfigPath`
+  - Use to get TypeScript syntactic and semantic diagnostics for one file
+- `get_symbol_summary`
+  - Input: `file`, `line`, `column`, optional `workspaceRoot`, optional `projectTsconfigPath`
+  - Use to identify the symbol at a position before navigating further
+- `get_definition`
+  - Same input shape as `get_symbol_summary`
+  - Use to jump from a symbol usage to its definition
+- `get_references`
+  - Same input shape as `get_symbol_summary`
+  - Use to find usages across the project
+- `reload_project`
+  - Input: optional `file`, optional `workspaceRoot`, optional `projectTsconfigPath`
+  - Use after large file edits, tsconfig changes, or when results appear stale
+
+Input rules
+
+- `line` and `column` are 1-based
+- `file` should point to a real file inside the local workspace
+- `workspaceRoot` helps when the same file could belong to more than one project
+- `projectTsconfigPath` helps pin analysis to a specific TypeScript project
+
+Recommended agent workflow
+
+1. Start with `discover_repository_structure` on the repo root.
+2. If frontend code is involved, call `get_web_project_context` on the same root.
+3. For a file-specific issue, call `get_diagnostics`.
+4. For symbol navigation, call `get_symbol_summary` first, then `get_definition` or `get_references`.
+5. If the repository changes materially during the session, call `reload_project`.
+
+Notes
+
+- This server is designed to fail fast on invalid input. Do not treat empty or missing output as success.
+- Repeated calls get faster after the initial project load because TypeScript state is cached in memory.
+- The implementation lives in `agent-workspace-mcp/README.md`, `agent-workspace-mcp/src/server.ts`, and `agent-workspace-mcp/src/cli.ts`.
