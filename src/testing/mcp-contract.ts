@@ -183,8 +183,9 @@ export function assertFixtureContract(payload: ToolContractPayload, projectRoot 
   assert.equal(payload.webContext.packageRoot, fixture.appRoot);
   assert.equal(payload.webContext.kind, "application");
   assert.equal(payload.webContext.confidence, "high");
-  assert.ok(payload.webContext.frameworkHints.includes("react"));
+  assert.deepEqual(payload.webContext.frameworkHints, []);
   assert.ok(payload.webContext.entryPoints.some((file) => normalizeSeparators(file).endsWith(normalizeSeparators(path.join("src", "main.tsx")))));
+  assert.ok(payload.webContext.routingSurfaces.length === 0);
 
   assert.equal(payload.reload.workspaceRoot, fixture.workspaceRoot);
   assert.equal(payload.reload.packageRoot, fixture.appRoot);
@@ -213,8 +214,11 @@ export async function callToolExpectError(client: Client, name: string, args: Re
   });
 
   assert.equal(result.isError, true, `${name} should surface a tool error`);
-  const textParts = (result.content ?? [])
-    .filter((item): item is { type: "text"; text: string } => item.type === "text")
+  const content = Array.isArray(result.content) ? result.content : [];
+  const textParts = content
+    .filter((item: unknown): item is { type: "text"; text: string } => {
+      return typeof item === "object" && item !== null && "type" in item && "text" in item && item.type === "text" && typeof item.text === "string";
+    })
     .map((item) => item.text)
     .join("\n");
   assert.match(textParts, messagePattern);

@@ -26,8 +26,8 @@ async function main(): Promise<void> {
     const { client, transport } = await createClientForInstalledCli(installedCli, installRoot);
 
     try {
-      const payload = await collectFixtureContract(client);
-      assertFixtureContract(payload);
+      const payload = await collectFixtureContract(client, projectRoot);
+      assertFixtureContract(payload, projectRoot);
     } finally {
       await closeClient(transport);
     }

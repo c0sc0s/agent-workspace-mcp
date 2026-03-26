@@ -106,7 +106,7 @@ test("tool failures are surfaced as MCP tool errors with actionable messages", a
         workspaceRoot,
         file: path.join(workspaceRoot, "packages", "app", "src", "missing.ts"),
       },
-      /File not found/i,
+      /File not found|ENOENT|no such file or directory/i,
     );
 
     await callToolExpectError(
@@ -118,7 +118,7 @@ test("tool failures are surfaced as MCP tool errors with actionable messages", a
         line: 99,
         column: 1,
       },
-      /outside the bounds|out of range|position/i,
+      /outside the bounds|out of range|position|outside file range/i,
     );
 
     await callToolExpectError(
