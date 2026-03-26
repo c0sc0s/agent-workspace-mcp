@@ -1,6 +1,5 @@
 import assert from "node:assert/strict";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
@@ -25,12 +24,6 @@ export const EXPECTED_TOOL_NAMES = [
   "get_web_project_context",
   "reload_project",
 ];
-
-const fixtureRoot = path.resolve("fixtures/monorepo");
-const fixtureAppRoot = path.join(fixtureRoot, "packages", "app");
-const fixtureAppFile = path.join(fixtureAppRoot, "src", "index.ts");
-const fixtureRootTsconfig = path.join(fixtureRoot, "tsconfig.json");
-const fixtureAppTsconfig = path.join(fixtureAppRoot, "tsconfig.json");
 const sharedMathPathFragment = path.join("packages", "shared", "src", "math.ts");
 
 export interface ToolContractPayload {
@@ -45,19 +38,22 @@ export interface ToolContractPayload {
   overrideDiagnostics: { file: string; diagnostics: DiagnosticItem[]; project: ProjectMetadata };
 }
 
-export function getFixturePaths(): {
+export function getFixturePaths(projectRoot = process.cwd()): {
   workspaceRoot: string;
   appRoot: string;
   appFile: string;
   rootTsconfig: string;
   appTsconfig: string;
 } {
+  const workspaceRoot = path.resolve(projectRoot, "fixtures", "monorepo");
+  const appRoot = path.join(workspaceRoot, "packages", "app");
+
   return {
-    workspaceRoot: fixtureRoot,
-    appRoot: fixtureAppRoot,
-    appFile: fixtureAppFile,
-    rootTsconfig: fixtureRootTsconfig,
-    appTsconfig: fixtureAppTsconfig,
+    workspaceRoot,
+    appRoot,
+    appFile: path.join(appRoot, "src", "index.ts"),
+    rootTsconfig: path.join(workspaceRoot, "tsconfig.json"),
+    appTsconfig: path.join(appRoot, "tsconfig.json"),
   };
 }
 
@@ -94,44 +90,45 @@ export async function createClientForInstalledCli(installedCliPath: string, cwd:
   });
 }
 
-export async function collectFixtureContract(client: Client): Promise<ToolContractPayload> {
+export async function collectFixtureContract(client: Client, projectRoot = process.cwd()): Promise<ToolContractPayload> {
+  const fixture = getFixturePaths(projectRoot);
   const tools = await client.listTools();
   const diagnostics = await callToolExpectSuccess(client, "get_diagnostics", {
-    workspaceRoot: fixtureRoot,
-    file: fixtureAppFile,
+    workspaceRoot: fixture.workspaceRoot,
+    file: fixture.appFile,
   });
   const definitions = await callToolExpectSuccess(client, "get_definition", {
-    workspaceRoot: fixtureRoot,
-    file: fixtureAppFile,
+    workspaceRoot: fixture.workspaceRoot,
+    file: fixture.appFile,
     line: 1,
     column: 10,
   });
   const references = await callToolExpectSuccess(client, "get_references", {
-    workspaceRoot: fixtureRoot,
-    file: fixtureAppFile,
+    workspaceRoot: fixture.workspaceRoot,
+    file: fixture.appFile,
     line: 1,
     column: 10,
   });
   const symbol = await callToolExpectSuccess(client, "get_symbol_summary", {
-    workspaceRoot: fixtureRoot,
-    file: fixtureAppFile,
+    workspaceRoot: fixture.workspaceRoot,
+    file: fixture.appFile,
     line: 1,
     column: 10,
   });
   const repository = await callToolExpectSuccess(client, "discover_repository_structure", {
-    root: fixtureRoot,
+    root: fixture.workspaceRoot,
   });
   const webContext = await callToolExpectSuccess(client, "get_web_project_context", {
-    root: fixtureRoot,
+    root: fixture.workspaceRoot,
   });
   const reload = await callToolExpectSuccess(client, "reload_project", {
-    workspaceRoot: fixtureRoot,
-    file: fixtureAppFile,
+    workspaceRoot: fixture.workspaceRoot,
+    file: fixture.appFile,
   });
   const overrideDiagnostics = await callToolExpectSuccess(client, "get_diagnostics", {
-    workspaceRoot: fixtureRoot,
-    projectTsconfigPath: fixtureRootTsconfig,
-    file: fixtureAppFile,
+    workspaceRoot: fixture.workspaceRoot,
+    projectTsconfigPath: fixture.rootTsconfig,
+    file: fixture.appFile,
   });
 
   return {
@@ -147,55 +144,56 @@ export async function collectFixtureContract(client: Client): Promise<ToolContra
   };
 }
 
-export function assertFixtureContract(payload: ToolContractPayload): void {
+export function assertFixtureContract(payload: ToolContractPayload, projectRoot = process.cwd()): void {
+  const fixture = getFixturePaths(projectRoot);
   assert.deepEqual([...payload.toolNames].sort(), [...EXPECTED_TOOL_NAMES].sort());
 
-  assert.equal(payload.diagnostics.file, fixtureAppFile);
+  assert.equal(payload.diagnostics.file, fixture.appFile);
   assert.deepEqual(payload.diagnostics.diagnostics, []);
-  assert.equal(payload.diagnostics.project.workspaceRoot, fixtureRoot);
-  assert.equal(payload.diagnostics.project.packageRoot, fixtureAppRoot);
-  assert.equal(payload.diagnostics.project.tsconfigPath, fixtureAppTsconfig);
+  assert.equal(payload.diagnostics.project.workspaceRoot, fixture.workspaceRoot);
+  assert.equal(payload.diagnostics.project.packageRoot, fixture.appRoot);
+  assert.equal(payload.diagnostics.project.tsconfigPath, fixture.appTsconfig);
 
-  assert.equal(payload.definitions.file, fixtureAppFile);
+  assert.equal(payload.definitions.file, fixture.appFile);
   assert.equal(payload.definitions.line, 1);
   assert.equal(payload.definitions.column, 10);
   assert.ok(payload.definitions.definitions.some((item) => normalizeSeparators(item.file).endsWith(normalizeSeparators(sharedMathPathFragment))));
-  assert.equal(payload.definitions.project.tsconfigPath, fixtureAppTsconfig);
+  assert.equal(payload.definitions.project.tsconfigPath, fixture.appTsconfig);
 
-  assert.equal(payload.references.file, fixtureAppFile);
+  assert.equal(payload.references.file, fixture.appFile);
   assert.equal(payload.references.line, 1);
   assert.equal(payload.references.column, 10);
   assert.ok(payload.references.references.some((item) => item.isDefinition));
   assert.ok(payload.references.references.some((item) => normalizeSeparators(item.file).endsWith(normalizeSeparators(sharedMathPathFragment))));
-  assert.equal(payload.references.project.tsconfigPath, fixtureAppTsconfig);
+  assert.equal(payload.references.project.tsconfigPath, fixture.appTsconfig);
 
-  assert.equal(payload.symbol.file, fixtureAppFile);
+  assert.equal(payload.symbol.file, fixture.appFile);
   assert.equal(payload.symbol.line, 1);
   assert.equal(payload.symbol.column, 10);
   assert.equal(payload.symbol.symbol?.kind, "alias");
   assert.match(payload.symbol.symbol?.name ?? "", /add/);
-  assert.equal(payload.symbol.project.tsconfigPath, fixtureAppTsconfig);
+  assert.equal(payload.symbol.project.tsconfigPath, fixture.appTsconfig);
 
-  assert.equal(payload.repository.root, fixtureRoot);
+  assert.equal(payload.repository.root, fixture.workspaceRoot);
   assert.equal(payload.repository.packages.length, 3);
   assert.ok(payload.repository.workspaceFiles.some((file) => normalizeSeparators(file).endsWith("pnpm-workspace.yaml")));
   assert.ok(payload.repository.tsconfigPaths.some((file) => normalizeSeparators(file).endsWith(normalizeSeparators(path.join("packages", "app", "tsconfig.json")))));
 
-  assert.equal(payload.webContext.root, fixtureRoot);
-  assert.equal(payload.webContext.packageRoot, fixtureAppRoot);
+  assert.equal(payload.webContext.root, fixture.workspaceRoot);
+  assert.equal(payload.webContext.packageRoot, fixture.appRoot);
   assert.equal(payload.webContext.kind, "application");
   assert.equal(payload.webContext.confidence, "high");
   assert.ok(payload.webContext.frameworkHints.includes("react"));
   assert.ok(payload.webContext.entryPoints.some((file) => normalizeSeparators(file).endsWith(normalizeSeparators(path.join("src", "main.tsx")))));
 
-  assert.equal(payload.reload.workspaceRoot, fixtureRoot);
-  assert.equal(payload.reload.packageRoot, fixtureAppRoot);
-  assert.equal(payload.reload.tsconfigPath, fixtureAppTsconfig);
+  assert.equal(payload.reload.workspaceRoot, fixture.workspaceRoot);
+  assert.equal(payload.reload.packageRoot, fixture.appRoot);
+  assert.equal(payload.reload.tsconfigPath, fixture.appTsconfig);
   assert.ok(Number(payload.reload.fileCount) >= 1);
 
-  assert.equal(payload.overrideDiagnostics.file, fixtureAppFile);
+  assert.equal(payload.overrideDiagnostics.file, fixture.appFile);
   assert.deepEqual(payload.overrideDiagnostics.diagnostics, []);
-  assert.equal(payload.overrideDiagnostics.project.tsconfigPath, fixtureRootTsconfig);
+  assert.equal(payload.overrideDiagnostics.project.tsconfigPath, fixture.rootTsconfig);
 }
 
 export async function callToolExpectSuccess(client: Client, name: string, args: Record<string, unknown>): Promise<unknown> {
@@ -254,8 +252,4 @@ function createClientForCommand(params: {
 
 function normalizeSeparators(value: string): string {
   return value.replaceAll("\\", "/");
-}
-
-export function createModulePathFromHere(relativePath: string): string {
-  return path.resolve(path.dirname(fileURLToPath(import.meta.url)), relativePath);
 }
