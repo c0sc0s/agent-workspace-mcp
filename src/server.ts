@@ -3,6 +3,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z } from "zod";
 
 import { ProjectServiceCache } from "./project-service.js";
+import { PACKAGE_NAME, PACKAGE_VERSION } from "./version.js";
 import { inspectRepository, getWebProjectContext } from "./repo-inspector.js";
 import type {
   DefinitionArgs,
@@ -36,8 +37,8 @@ const reloadProjectSchema = z.object({
 
 export function createServer(cache = new ProjectServiceCache()): McpServer {
   const server = new McpServer({
-    name: "agent-workspace-mcp",
-    version: "0.1.0",
+    name: PACKAGE_NAME,
+    version: PACKAGE_VERSION,
   });
 
   server.registerTool(

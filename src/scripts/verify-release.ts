@@ -4,7 +4,13 @@ import path from "node:path";
 import { exec } from "node:child_process";
 import { promisify } from "node:util";
 
-import { assertFixtureContract, closeClient, collectFixtureContract, createClientForInstalledCli } from "../testing/mcp-contract.js";
+import {
+  assertFixtureContract,
+  closeClient,
+  collectFixtureContract,
+  createClientForInstalledCli,
+  createClientForNpxPackage,
+} from "../testing/mcp-contract.js";
 
 const execAsync = promisify(exec);
 
@@ -30,6 +36,17 @@ async function main(): Promise<void> {
       assertFixtureContract(payload, projectRoot);
     } finally {
       await closeClient(transport);
+    }
+
+    const npxSmokeRoot = path.join(tempRoot, "npx-check");
+    await fs.mkdir(npxSmokeRoot, { recursive: true });
+    const npxClientResult = await createClientForNpxPackage(tarballPath, npxSmokeRoot);
+
+    try {
+      const payload = await collectFixtureContract(npxClientResult.client, projectRoot);
+      assertFixtureContract(payload, projectRoot);
+    } finally {
+      await closeClient(npxClientResult.transport);
     }
   } finally {
     if (tarballPath) {

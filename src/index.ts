@@ -1,6 +1,10 @@
 export { createServer, startServer } from "./server.js";
 export { ProjectServiceCache } from "./project-service.js";
-export { getPackageRootForPath, getWebProjectContext, inspectRepository } from "./repo-inspector.js";
+export {
+  getPackageRootForPath,
+  getWebProjectContext,
+  inspectRepository,
+} from "./repo-inspector.js";
 
 export type {
   BaseToolArgs,

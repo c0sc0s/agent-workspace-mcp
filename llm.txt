@@ -1,6 +1,6 @@
-Repository: codex-ts-lsp
+Repository: agent-workspace-mcp
 
-This repository contains a local stdio MCP server in `agent-workspace-mcp/`.
+This repository contains a local stdio MCP server.
 Server package name: `agent-workspace-mcp`
 Purpose: give coding agents project-aware TypeScript and web workspace context without requiring an IDE.
 
@@ -29,9 +29,17 @@ For JSON-style MCP clients:
 }
 ```
 
-If you are working from this checkout and want to run the local build instead:
+On Windows, if your MCP client struggles to resolve `npx` reliably, prefer:
 
-1. Build the server in `agent-workspace-mcp/`
+```toml
+[mcp_servers.agent_workspace_mcp]
+command = "npx.cmd"
+args = ["-y", "agent-workspace-mcp"]
+```
+
+If you are working from a local checkout and want to run the build artifact directly instead:
+
+1. Build the server in this checkout
 2. Register:
 
 ```json
@@ -39,7 +47,7 @@ If you are working from this checkout and want to run the local build instead:
   "mcpServers": {
     "agent-workspace-mcp": {
       "command": "node",
-      "args": ["C:/Users/Admin/workspace/codex-ts-lsp/agent-workspace-mcp/dist/cli.js"]
+      "args": ["C:/path/to/agent-workspace-mcp/dist/cli.js"]
     }
   }
 }
@@ -101,4 +109,4 @@ Notes
 
 - This server is designed to fail fast on invalid input. Do not treat empty or missing output as success.
 - Repeated calls get faster after the initial project load because TypeScript state is cached in memory.
-- The implementation lives in `agent-workspace-mcp/README.md`, `agent-workspace-mcp/src/server.ts`, and `agent-workspace-mcp/src/cli.ts`.
+- The implementation lives in `README.md`, `src/server.ts`, and `src/cli.ts`.

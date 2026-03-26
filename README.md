@@ -28,13 +28,19 @@ It is especially useful for monorepos, frontend applications, and local reposito
 Run directly with `npx`:
 
 ```bash
-npx -y agent-workspace-mcp
+npx -y agent-workspace-mcp@0.1.4
 ```
 
 To configure Codex automatically without editing `~/.codex/config.toml` by hand:
 
 ```bash
-npx -y agent-workspace-mcp setup-codex
+npx -y agent-workspace-mcp@0.1.4 --setup-codex
+```
+
+To print the installed package version:
+
+```bash
+npx -y agent-workspace-mcp@0.1.4 --version
 ```
 
 Or install globally:
@@ -109,13 +115,19 @@ For development and contribution details, see [CONTRIBUTING.md](./CONTRIBUTING.m
 直接通过 `npx` 运行：
 
 ```bash
-npx -y agent-workspace-mcp
+npx -y agent-workspace-mcp@0.1.4
 ```
 
 如果你不想手动编辑 `~/.codex/config.toml`，可以直接执行：
 
 ```bash
-npx -y agent-workspace-mcp setup-codex
+npx -y agent-workspace-mcp@0.1.4 --setup-codex
+```
+
+如果你想查看当前包版本：
+
+```bash
+npx -y agent-workspace-mcp@0.1.4 --version
 ```
 
 或者全局安装：

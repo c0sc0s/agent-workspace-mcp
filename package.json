@@ -1,13 +1,13 @@
 {
   "name": "agent-workspace-mcp",
-  "version": "0.1.0",
+  "version": "0.1.4",
   "description": "MCP server for agent-oriented TypeScript analysis, repository discovery, and web workspace context.",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
-    "agent-workspace-mcp": "./bin/agent-workspace-mcp.js"
+    "agent-workspace-mcp": "bin/agent-workspace-mcp.js"
   },
   "exports": {
     ".": {
@@ -23,12 +23,16 @@
     "CHANGELOG.md"
   ],
   "scripts": {
+    "prebuild": "tsx src/scripts/sync-version.ts",
     "build": "rslib build",
     "build:watch": "rslib build --watch",
     "inspect": "rslib inspect",
     "start": "node dist/cli.js",
     "dev": "tsx src/cli.ts",
     "smoke": "tsx src/scripts/smoke.ts",
+    "codex:setup-local": "tsx src/scripts/setup-codex-local.ts",
+    "codex:setup": "tsx src/scripts/setup-codex-published.ts",
+    "codex:local": "npm run build && npm run smoke -- \"./fixtures/monorepo\" \"./fixtures/monorepo/packages/app/src/index.ts\" 1 10 && npm run codex:setup-local",
     "test": "node --import tsx --test src/test/**/*.test.ts",
     "verify:release": "tsx src/scripts/verify-release.ts",
     "check": "npm run build && npm run test && npm run smoke -- \"./fixtures/monorepo\" \"./fixtures/monorepo/packages/app/src/index.ts\" 1 10 && npm run verify:release",

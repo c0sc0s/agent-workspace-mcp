@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
@@ -86,6 +88,21 @@ export async function createClientForInstalledCli(installedCliPath: string, cwd:
   return createClientForCommand({
     command: process.execPath,
     args: [installedCliPath],
+    cwd,
+  });
+}
+
+export async function createClientForNpxPackage(packageSpecifier: string, cwd: string): Promise<{
+  client: Client;
+  transport: StdioClientTransport;
+}> {
+  const npxCommand = process.platform === "win32" ? "npx.cmd" : "npx";
+  const npxCacheRoot = path.join(os.tmpdir(), "agent-workspace-mcp-npx-cache");
+  fs.mkdirSync(npxCacheRoot, { recursive: true });
+
+  return createClientForCommand({
+    command: npxCommand,
+    args: ["-y", "--cache", npxCacheRoot, "--package", packageSpecifier, "agent-workspace-mcp"],
     cwd,
   });
 }
